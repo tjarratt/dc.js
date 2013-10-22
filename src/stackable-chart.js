@@ -17,6 +17,21 @@ dc.stackableChart = function (_chart) {
     var _allKeyAccessors;
     var _stackLayers;
 
+    var hackyHasFirstGroup = false;
+
+    var parentAccessor = _chart.valueAccessor();
+    var parentGroup = _chart.group();
+    if (parentGroup) {
+        hackyHasFirstGroup = true;
+        _groupStack.addNamedGroup(
+            _chart.group(),
+            _chart._getGroupName(_chart.group(), parentAccessor),
+            parentAccessor);
+    }
+    else {
+        _groupStack.addGroup(undefined, undefined);
+    }
+
     /**
     #### .stack(group[, name, accessor])
     Stack a new crossfilter group into this chart with optionally a custom value accessor. All stacks in the same chart will
@@ -34,6 +49,8 @@ dc.stackableChart = function (_chart) {
     _chart.stack = function (group, name, accessor) {
         if(!arguments.length && _groupStack.size() > 0)
             _groupStack.unstack();
+
+        console.log("stacking with a groupStack of size " + _groupStack.size());
 
         _groupStack.setDefaultAccessor(_chart.valueAccessor());
 
@@ -121,6 +138,7 @@ dc.stackableChart = function (_chart) {
         var max, all = flattenStack();
 
         max = d3.max(all, function (p) {
+//            console.log(p.y, p.y0);
             return p.y + p.y0;
         });
 
@@ -231,6 +249,7 @@ dc.stackableChart = function (_chart) {
     dc.override(_chart, "group", function(group, name) {
         if (!arguments.length) return _groupStack.getGroupByIndex(0);
 
+        hackyHasFirstGroup = true;
         if (_groupStack.size() === 0) {
             _groupStack.addNamedGroup(group, name, _chart.valueAccessor());
         }

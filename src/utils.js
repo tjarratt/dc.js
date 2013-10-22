@@ -207,7 +207,7 @@ dc.utils.GroupStack = function () {
         var layers = [];
 
         for (var i = 0; i < _dataLayers.length; ++i) {
-            if (_groups[i].hidden)
+            if (!_groups[i][0] || _groups[i].hidden)
                 continue;
 
             var layer = {index: i, points: []};
@@ -216,6 +216,7 @@ dc.utils.GroupStack = function () {
             for (var j = 0; j < dataPoints.length; ++j)
                 layer.points.push(dataPoints[j]);
 
+            console.log(layer);
             layers.push(layer);
         }
 

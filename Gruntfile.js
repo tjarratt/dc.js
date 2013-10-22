@@ -51,7 +51,7 @@ module.exports = function (grunt) {
                 options: {
                     /* reporter: "spec" */
                 },
-                src: ["test/*.js", "spec/*"]
+                src: ["test/composite-chart-test.js", "spec/*"]
             }
         },
         emu: {
