@@ -28,6 +28,23 @@ suite.addBatch({
             assert.equal(stack.size(), 1);
             stack.clear();
         },
+        'be able to set a group by index': function (stack) {
+            var group = {};
+            var newGroup = {};
+
+            var index = stack.addGroup(group);
+            stack.setGroupByIndex(newGroup, index);
+            assert.equal(newGroup, stack.getGroupByIndex(index));
+            stack.clear();
+        },
+        'be able to set a group by index with a name': function (stack) {
+            var group = {};
+
+            var index = stack.addGroup(group);
+            stack.setGroupByIndex({}, "group name", index);
+            assert.equal("group name", stack.getGroupNameByIndex(index));
+            stack.clear();
+        },
         'be able to add group with retriever': function(stack){
             var retriever = {};
             var index = stack.addGroup({}, retriever);
@@ -35,43 +52,29 @@ suite.addBatch({
             assert.equal(stack.size(), 1);
             stack.clear();
         },
+        'be able to get the name of a group by index': function(stack) {
+            var group = {}
+            var index = stack.addNamedGroup(group, "group name");
+            assert.equal(stack.getGroupNameByIndex(index), "group name");
+            stack.clear();
+        },
         'be able to hide and show stacked groups': function(stack) {
             stack.addNamedGroup({}, "first group");
             stack.addNamedGroup({}, "second group");
 
-            stack.setDataPoint(0, 0, 77);
-            stack.setDataPoint(1, 0, 55);
-            stack.setDataPoint(2, 0, 33);
+            stack.setDataPoint(0, 0, 55);
+            stack.setDataPoint(1, 0, 33);
             stack.hideGroups("first group");
 
             var layers = stack.toLayers();
-            assert.equal(layers.length, 2);
-            assert.equal(layers[0].points[0], 77);
-            assert.equal(layers[1].points[0], 33);
+            assert.equal(layers.length, 1);
+            assert.equal(layers[0].points[0], 33);
 
             stack.showGroups("first group");
 
-            assert.equal(stack.toLayers().length, 3);
-
-            stack.clear();
-        },
-        'be able to hide and show the main group': function(stack) {
-            stack.addNamedGroup({}, "first group");
-            stack.addNamedGroup({}, "second group");
-
-            stack.setDataPoint(0, 0, 77);
-            stack.setDataPoint(1, 0, 55);
-            stack.setDataPoint(2, 0, 33);
-            stack.hideGroups("main group", true);
-
-            var layers = stack.toLayers();
+            layers = stack.toLayers();
             assert.equal(layers.length, 2);
             assert.equal(layers[0].points[0], 55);
-            assert.equal(layers[1].points[0], 33);
-
-            stack.showGroups("main group", true);
-
-            assert.equal(stack.toLayers().length, 3);
 
             stack.clear();
         },

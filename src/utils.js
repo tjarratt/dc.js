@@ -94,7 +94,6 @@ dc.utils.GroupStack = function () {
     var _dataLayers = [[ ]];
     var _groups = [];
     var _defaultAccessor;
-    var _hideChartGroup;
 
     function initializeDataLayer(i) {
         if (!_dataLayers[i])
@@ -124,16 +123,40 @@ dc.utils.GroupStack = function () {
     this.addNamedGroup = function (group, name, accessor) {
         var groupIndex = this.addGroup(group, accessor);
         _groups[groupIndex].name = name;
-        return name;
+        return groupIndex;
     };
 
     this.getGroupByIndex = function (index) {
-        return _groups[index][0];
+        return _groups[index] && _groups[index][0];
+    };
+
+    this.setGroupByIndex = function (group, name, index) {
+        if (typeof name == 'string') {
+            _groups[index].name = name;
+        }
+        else if (typeof name === 'number') {
+            index = name;
+        }
+
+        if (_groups[index] === undefined) {
+            _groups[index] = [group, _defaultAccessor];
+        }
+        else {
+            _groups[index][0] = group;
+        }
+    };
+
+    this.getGroupNameByIndex = function (index) {
+        return _groups[index].name;
     };
 
     this.getAccessorByIndex = function (index) {
         return _groups[index][1];
     };
+
+    this.setAccessorByIndex = function (index, accessor) {
+        _groups[index][1] = accessor;
+    }
 
     this.size = function () {
         return _groups.length;
@@ -142,6 +165,15 @@ dc.utils.GroupStack = function () {
     this.clear = function () {
         _dataLayers = [];
         _groups = [];
+    };
+
+    this.unstack = function() {
+        if (this.size() === 0)
+            return this.clear();
+
+        var firstGroup = _groups[0];
+        this.clear();
+        _groups.push(firstGroup);
     };
 
     this.setDefaultAccessor = function (retriever) {
@@ -156,19 +188,17 @@ dc.utils.GroupStack = function () {
         _dataLayers = [[ ]];
     };
 
-    this.showGroups = function(name, showChartGroup) {
-        if (showChartGroup) _hideChartGroup = false;
+    this.showGroups = function(name) {
         this.toggleGroups(name, false);
     };
 
-    this.hideGroups = function(name, hideChartGroup) {
-        if (hideChartGroup) _hideChartGroup = true;
+    this.hideGroups = function(name) {
         this.toggleGroups(name, true);
     };
 
     this.toggleGroups = function(name, value) {
         for (var i = 0; i < _groups.length; ++i) {
-            if (_groups[i].name === name)
+            if (this.getGroupNameByIndex(i) === name)
                 _groups[i].hidden = value;
         }
     };
@@ -177,9 +207,7 @@ dc.utils.GroupStack = function () {
         var layers = [];
 
         for (var i = 0; i < _dataLayers.length; ++i) {
-            if (i === 0 && _hideChartGroup)
-                continue;
-            if (i > 0 && _groups[i-1].hidden)
+            if (_groups[i].hidden)
                 continue;
 
             var layer = {index: i, points: []};

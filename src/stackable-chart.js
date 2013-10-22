@@ -32,8 +32,8 @@ dc.stackableChart = function (_chart) {
 
     **/
     _chart.stack = function (group, name, accessor) {
-        if(!arguments.length)
-            _groupStack.clear();
+        if(!arguments.length && _groupStack.size() > 0)
+            _groupStack.unstack();
 
         _groupStack.setDefaultAccessor(_chart.valueAccessor());
 
@@ -58,7 +58,7 @@ dc.stackableChart = function (_chart) {
 
     **/
     _chart.hideStack = function (stackName) {
-        _groupStack.hideGroups(stackName, _chart._getGroupName(_chart.group()) == stackName);
+        _groupStack.hideGroups(stackName);
     };
 
     /**
@@ -68,7 +68,7 @@ dc.stackableChart = function (_chart) {
 
     **/
     _chart.showStack = function (stackName) {
-        _groupStack.showGroups(stackName, _chart._getGroupName(_chart.group()) == stackName);
+        _groupStack.showGroups(stackName);
     };
 
     _chart.expireCache = function () {
@@ -83,8 +83,6 @@ dc.stackableChart = function (_chart) {
         if (_allGroups === null) {
             _allGroups = [];
 
-            _allGroups.push(_chart.group());
-
             for (var i = 0; i < _groupStack.size(); ++i)
                 _allGroups.push(_groupStack.getGroupByIndex(i));
         }
@@ -95,8 +93,6 @@ dc.stackableChart = function (_chart) {
     _chart.allValueAccessors = function () {
         if (_allValueAccessors === null) {
             _allValueAccessors = [];
-
-            _allValueAccessors.push(_chart.valueAccessor());
 
             for (var i = 0; i < _groupStack.size(); ++i)
                 _allValueAccessors.push(_groupStack.getAccessorByIndex(i));
@@ -220,6 +216,9 @@ dc.stackableChart = function (_chart) {
     dc.override(_chart, "valueAccessor", function (_) {
         if (!arguments.length) return _chart._valueAccessor();
         _chart.expireCache();
+
+        _groupStack.setAccessorByIndex(0, _);
+
         return _chart._valueAccessor(_);
     });
 
@@ -227,6 +226,19 @@ dc.stackableChart = function (_chart) {
         if (!arguments.length) return _chart._keyAccessor();
         _chart.expireCache();
         return _chart._keyAccessor(_);
+    });
+
+    dc.override(_chart, "group", function(group, name) {
+        if (!arguments.length) return _groupStack.getGroupByIndex(0);
+
+        if (_groupStack.size() === 0) {
+            _groupStack.addNamedGroup(group, name, _chart.valueAccessor());
+        }
+        else {
+            _groupStack.setGroupByIndex(group, name, 0);
+        }
+
+        return _chart._group(group, name);
     });
 
     _chart.stackLayout = function (stack) {
